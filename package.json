@@ -20,6 +20,7 @@
     "env-var": "^7.4.1",
     "eslint": "^8.56.0",
     "fastify": "^4.28.1",
+    "murmurhash": "^2.0.1",
     "node-pg-migrate": "^6.2.2",
     "pino": "^8.18.0",
     "postgres": "^3.4.3",
