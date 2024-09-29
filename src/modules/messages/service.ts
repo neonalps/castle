@@ -1,0 +1,5 @@
+export class MessageService {
+
+    constructor() {}
+
+}
