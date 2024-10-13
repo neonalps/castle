@@ -13,3 +13,5 @@ export const initAndTestDatabaseConnection = async () => {
 };
 
 export default sql;
+
+export type Sql = postgres.Sql<{}>;

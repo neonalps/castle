@@ -1,5 +1,12 @@
 import { HttpMethod } from "@src/http/constants";
+import { ProfileDao } from "@src/models/internal/dao/profile";
 import { FastifySchema } from "fastify";
+
+export type AuthenticationContext = {
+    authenticated: boolean,
+    profile: ProfileDao | null,
+    messageGroupId: number | null,
+}
 
 export type RouteDefinition<S, T> = {
     name?: string,
@@ -7,10 +14,11 @@ export type RouteDefinition<S, T> = {
     method: HttpMethod,
     schema: FastifySchema,
     handler: RouteHandler<S, T>,
+    authenticated: boolean,
     response?: ResponseSchema,
 }
 
-export type HandlerFunction<S, T> = (_: S) => Promise<T>;
+export type HandlerFunction<S, T> = (principal: AuthenticationContext, _: S) => Promise<T>;
 
 export interface RouteProvider<S, T> {
     provide: () => RouteDefinition<S, T>;

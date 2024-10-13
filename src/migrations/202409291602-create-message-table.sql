@@ -1,8 +1,8 @@
 CREATE TABLE message (
     timestamp TEXT,
-    profile_id TEXT NOT NULL,
-    content TEXT NOT NULL,
+    message_group_id INTEGER NOT NULL,
+    content BYTEA NOT NULL,
     is_encrypted BOOLEAN NOT NULL,
-    PRIMARY KEY (timestamp, profile_id),
-    CONSTRAINT fk_message_profile FOREIGN KEY (profile_id) REFERENCES profile(id)
+    PRIMARY KEY (timestamp, message_group_id),
+    CONSTRAINT fk_message_message_group FOREIGN KEY (message_group_id) REFERENCES message_group(id)
 );

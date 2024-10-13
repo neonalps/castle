@@ -1,11 +1,25 @@
-import { FastifyInstance, FastifyReply, FastifyRequest, FastifySchema } from "fastify";
-import { RequestSchema, ResponseSchema, RouteDefinition, RouteProvider } from "@src/router/types";
+import { FastifyError, FastifyInstance, FastifyReply, FastifyRequest, FastifySchema } from "fastify";
+import fastifyJwt from "@fastify/jwt";
+import { AuthenticationContext, RequestSchema, ResponseSchema, RouteDefinition, RouteProvider } from "./types";
 import { HttpMethod } from "@src/http/constants";
 import logger from "@src/log/logger";
-import { isDefined } from "@src/util/common";
+import dependencyManager from "@src/di/manager";
+import { Dependencies } from "@src/di/dependencies";
 import { IllegalStateError } from "@src/api/error/illegal-state-error";
+import { isDefined, isNotDefined } from "@src/util/common";
+import { AuthenticationError } from "@src/api/error/authentication-error";
+import { ProfileService } from "@src/modules/profile/service";
+import { AppService } from "@src/modules/app/service";
+import { MessageGroupService } from "@src/modules/message-group/service";
+import { MessageGroupDao } from "@src/models/internal/dao/message-group";
 
 export class RouteManager {
+
+    private static readonly EMPTY_AUTHENTICATION: AuthenticationContext = {
+        authenticated: false,
+        profile: null,
+        messageGroupId: null,
+    }
 
     private constructor() {}
 
@@ -15,19 +29,57 @@ export class RouteManager {
         }
     }
 
+    public static registerJwtParser(server: FastifyInstance, secret: string, issuer: string, audience: string): void {
+        server.register(fastifyJwt, {
+            formatUser: (user: any) => user.sub,
+            secret,
+            verify: {
+                allowedAud: audience,
+                allowedIss: issuer,
+            }
+        });
+    }
+
     private static registerRoute(server: FastifyInstance, route: RouteDefinition<unknown, unknown>): void {
         server.route({
             method: route.method,
             url: route.path,
             schema: RouteManager.convertRequestSchema(route.schema),
+            onRequest: async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+                if (route.authenticated !== true) {
+                    return;
+                }
+
+                try {
+                    await request.jwtVerify();
+                } catch (ex: unknown) {
+                    const error = ex as FastifyError;
+                    this.sendErrorResponse(reply, route, error.statusCode, new Error(error.message));
+                }
+            },
+            preHandler: async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+                const authenticationContext = await RouteManager.buildAuthenticationContext(route.authenticated, request.user as any);
+                
+                if (route.authenticated === true && !RouteManager.hasValidAuthenthicationContextForAuthenticatedRequest(authenticationContext)) {
+                    this.sendErrorResponse(reply, route, 401, "Unauthorized");
+                    return;
+                }
+
+                (request as any).principal = authenticationContext;
+            },
             handler: async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+                const principal: AuthenticationContext = (request as any)['principal'];
+
                 const body = RouteManager.mergeRequestContext(request) as unknown;
 
                 try {
-                    const response = await route.handler.handle(body);
+                    const response = await route.handler.handle(principal, body);
                     this.sendSuccessResponse(reply, route, response);
                 } catch (ex) {
-                    if (ex instanceof IllegalStateError) {
+                    if (ex instanceof AuthenticationError) {
+                        this.sendErrorResponse(reply, route, 401, ex);
+                        return;
+                    } else if (ex instanceof IllegalStateError) {
                         this.sendErrorResponse(reply, route, 400, ex);
                         return;
                     }
@@ -38,6 +90,46 @@ export class RouteManager {
                 }
             },
         })
+    }
+
+    private static async buildAuthenticationContext(isRouteAuthenticated: boolean, publicUserId: string | null): Promise<AuthenticationContext> {
+        if (!isRouteAuthenticated) {
+            return RouteManager.EMPTY_AUTHENTICATION;
+        }
+
+        if (typeof publicUserId !== 'string') {
+            throw new Error("No user ID for authenticated route while building authentication context");
+        }
+
+        const profile = await dependencyManager.get<ProfileService>(Dependencies.ProfileService).getByPublicId(publicUserId);
+        if (profile === null) {
+            throw new Error("No profile with this user ID was found");
+        }
+
+        const app = await dependencyManager.get<AppService>(Dependencies.AppService).getById(profile.appId);
+        if (app === null) {
+            throw new Error("Could not load app for this profile");
+        }
+
+        let messageGroupId = app.messageGroupId;
+        if (isNotDefined(messageGroupId)) {
+            const messageGroup = await dependencyManager.get<MessageGroupService>(Dependencies.MessageGroupService).getByProfileId(profile.id);
+            if (isNotDefined(messageGroup)) {
+                console.error(`Failed to determine message group for user with profile ID ${profile.id}`);
+                throw new Error("Failed to determine message group for user");
+            }
+            messageGroupId = (messageGroup as MessageGroupDao).id;
+        }
+
+        return {
+            authenticated: true,
+            profile,
+            messageGroupId,
+        };
+    }
+
+    private static hasValidAuthenthicationContextForAuthenticatedRequest(context: AuthenticationContext): boolean {
+        return !!context && context.authenticated === true && context.profile !== null;
     }
 
     private static sendSuccessResponse(reply: FastifyReply, route: RouteDefinition<unknown, unknown>, responseBody: unknown): void {
@@ -108,4 +200,3 @@ export class RouteManager {
     }
 
 }
-
