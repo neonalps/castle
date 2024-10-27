@@ -6,19 +6,15 @@ import logger from "@src/log/logger";
 import dependencyManager from "@src/di/manager";
 import { Dependencies } from "@src/di/dependencies";
 import { IllegalStateError } from "@src/api/error/illegal-state-error";
-import { isDefined, isNotDefined } from "@src/util/common";
+import { isDefined } from "@src/util/common";
 import { AuthenticationError } from "@src/api/error/authentication-error";
 import { ProfileService } from "@src/modules/profile/service";
-import { AppService } from "@src/modules/app/service";
-import { MessageGroupService } from "@src/modules/message-group/service";
-import { MessageGroupDao } from "@src/models/internal/dao/message-group";
 
 export class RouteManager {
 
     private static readonly EMPTY_AUTHENTICATION: AuthenticationContext = {
         authenticated: false,
         profile: null,
-        messageGroupId: null,
     }
 
     private constructor() {}
@@ -106,25 +102,9 @@ export class RouteManager {
             throw new Error("No profile with this user ID was found");
         }
 
-        const app = await dependencyManager.get<AppService>(Dependencies.AppService).getById(profile.appId);
-        if (app === null) {
-            throw new Error("Could not load app for this profile");
-        }
-
-        let messageGroupId = app.messageGroupId;
-        if (isNotDefined(messageGroupId)) {
-            const messageGroup = await dependencyManager.get<MessageGroupService>(Dependencies.MessageGroupService).getByProfileId(profile.id);
-            if (isNotDefined(messageGroup)) {
-                console.error(`Failed to determine message group for user with profile ID ${profile.id}`);
-                throw new Error("Failed to determine message group for user");
-            }
-            messageGroupId = (messageGroup as MessageGroupDao).id;
-        }
-
         return {
             authenticated: true,
             profile,
-            messageGroupId,
         };
     }
 
