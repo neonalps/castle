@@ -5,7 +5,6 @@ import { FastifySchema } from "fastify";
 export type AuthenticationContext = {
     authenticated: boolean,
     profile: ProfileDao | null,
-    messageGroupId: number | null,
 }
 
 export type RouteDefinition<S, T> = {

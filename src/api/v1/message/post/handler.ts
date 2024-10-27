@@ -15,11 +15,13 @@ export class PostMessageHandler implements RouteHandler<PostMessageRequestDto, P
     }
 
     public async handle(context: AuthenticationContext, dto: PostMessageRequestDto): Promise<PostMessageResponseDto> {
-        const messageGroupId = context.messageGroupId;
-        if (isNotDefined(messageGroupId)) {
-            throw new AuthenticationError("messageGroupId could not be found");
+        const profileId = context.profile?.id;
+        if (isNotDefined(profileId)) {
+            throw new AuthenticationError("Profile ID could not be found");
         }
 
+        // TODO perform permission check if necessary and determine message group id
+        const messageGroupId = 0;
         const messageGroupMerkle = await this.messageService.postMessages(messageGroupId as number, dto.messages);
 
         const response: PostMessageResponseDto = {
