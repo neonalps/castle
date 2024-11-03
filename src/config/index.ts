@@ -15,6 +15,7 @@ const authTokenIssuer = env.get("AUTH_TOKEN_ISSUER").required().asString();
 const authTokenSigningKey = env.get("AUTH_TOKEN_SIGNING_KEY").required().asString();
 const corsAllowedMethods = env.get("CORS_ALLOWED_METHODS").required().asString();
 const corsAllowedOrigins = env.get("CORS_ALLOWED_ORIGINS").required().asString();
+const cryptoKeySymmetric = env.get("CRYPTO_KEY_SYMMETRIC").required().asString();
 
 const parseAllowedMethods = (methods: string): HttpMethod[] => {
     const methodStrings = methods.split(",");
@@ -39,3 +40,4 @@ export const getServerPort = () => serverPort;
 export const getAuthTokenAudience = () => authTokenAudience;
 export const getAuthTokenIssuer = () => authTokenIssuer;
 export const getAuthTokenSigningKey = () => authTokenSigningKey;
+export const getCryptoKeySymmetric = () => cryptoKeySymmetric;

@@ -1,14 +1,12 @@
 export class CreateProfileDto {
     private _publicId!: string;
     private _appId!: number;
-    private _hashedEmail!: string;
-    private _encryptedLocalKey!: string;
+    private _hashedLogin!: string;
  
     constructor(builder: CreateProfileDtoBuilder) {
        this._publicId = builder.publicId;
        this._appId = builder.appId;
-       this._hashedEmail = builder.hashedEmail;
-       this._encryptedLocalKey = builder.encryptedLocalKey;
+       this._hashedLogin = builder.hashedLogin;
     }
  
     public get publicId(): string {
@@ -19,12 +17,8 @@ export class CreateProfileDto {
        return this._appId;
     }
  
-    public get hashedEmail(): string {
-       return this._hashedEmail;
-    }
- 
-    public get encryptedLocalKey(): string {
-       return this._encryptedLocalKey;
+    public get hashedLogin(): string {
+       return this._hashedLogin;
     }
  
     public static get Builder(): CreateProfileDtoBuilder {
@@ -35,8 +29,7 @@ export class CreateProfileDto {
  class CreateProfileDtoBuilder {
     private _publicId!: string;
     private _appId!: number;
-    private _hashedEmail!: string;
-    private _encryptedLocalKey!: string;
+    private _hashedLogin!: string;
  
     public withPublicId(publicId: string): CreateProfileDtoBuilder {
        this._publicId = publicId;
@@ -48,13 +41,8 @@ export class CreateProfileDto {
        return this;
     }
  
-    public withHashedEmail(hashedEmail: string): CreateProfileDtoBuilder {
-       this._hashedEmail = hashedEmail;
-       return this;
-    }
- 
-    public withEncryptedLocalKey(encryptedLocalKey: string): CreateProfileDtoBuilder {
-       this._encryptedLocalKey = encryptedLocalKey;
+    public withHashedLogin(hashedLogin: string): CreateProfileDtoBuilder {
+       this._hashedLogin = hashedLogin;
        return this;
     }
  
@@ -66,12 +54,8 @@ export class CreateProfileDto {
        return this._appId;
     }
  
-    public get hashedEmail(): string {
-       return this._hashedEmail;
-    }
- 
-    public get encryptedLocalKey(): string {
-       return this._encryptedLocalKey;
+    public get hashedLogin(): string {
+       return this._hashedLogin;
     }
  
     build(): CreateProfileDto {

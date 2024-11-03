@@ -4,7 +4,7 @@ export class ProfileDao {
     private _id!: number;
     private _publicId!: string;
     private _appId!: number;
-    private _hashedEmail!: string;
+    private _hashedLogin!: string;
     private _encryptedLocalKey!: string;
     private _createdAt!: Date;
  
@@ -12,7 +12,7 @@ export class ProfileDao {
        this._id = builder.id;
        this._publicId = builder.publicId;
        this._appId = builder.appId;
-       this._hashedEmail = builder.hashedEmail;
+       this._hashedLogin = builder.hashedLogin;
        this._encryptedLocalKey = builder.encryptedLocalKey;
        this._createdAt = builder.createdAt;
     }
@@ -29,8 +29,8 @@ export class ProfileDao {
        return this._appId;
     }
  
-    public get hashedEmail(): string {
-       return this._hashedEmail;
+    public get hashedLogin(): string {
+       return this._hashedLogin;
     }
  
     public get encryptedLocalKey(): string {
@@ -50,7 +50,7 @@ export class ProfileDao {
             .withId(item.id)
             .withPublicId(item.publicId)
             .withAppId(item.appId)
-            .withHashedEmail(item.hashedEmail)
+            .withHashedLogin(item.hashedLogin)
             .withEncryptedLocalKey(item.encryptedLocalKey)
             .withCreatedAt(item.createdAt)
             .build();
@@ -61,7 +61,7 @@ export class ProfileDao {
     private _id!: number;
     private _publicId!: string;
     private _appId!: number;
-    private _hashedEmail!: string;
+    private _hashedLogin!: string;
     private _encryptedLocalKey!: string;
     private _createdAt!: Date;
  
@@ -80,8 +80,8 @@ export class ProfileDao {
        return this;
     }
  
-    public withHashedEmail(hashedEmail: string): ProfileDaoBuilder {
-       this._hashedEmail = hashedEmail;
+    public withHashedLogin(hashedLogin: string): ProfileDaoBuilder {
+       this._hashedLogin = hashedLogin;
        return this;
     }
  
@@ -107,8 +107,8 @@ export class ProfileDao {
        return this._appId;
     }
  
-    public get hashedEmail(): string {
-       return this._hashedEmail;
+    public get hashedLogin(): string {
+       return this._hashedLogin;
     }
  
     public get encryptedLocalKey(): string {

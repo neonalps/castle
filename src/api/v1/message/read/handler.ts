@@ -19,11 +19,6 @@ export class ReadMessageHandler implements RouteHandler<ReadMessageRequestDto, P
     }
 
     public async handle(context: AuthenticationContext, dto: ReadMessageRequestDto): Promise<PaginatedResponseDto<MessageDto>> {
-        const profileId = context.profile?.id;
-        if (isNotDefined(profileId)) {
-            throw new AuthenticationError("Profile could not be found");
-        }
-
         if (isDefined(dto.nextPageKey) && (isDefined(dto.limit) || isDefined(dto.clientId) || isDefined(dto.timestamp))) {
             throw new IllegalStateError("When nextPageKey is passed no other query parameters are allowed");
         }
@@ -36,9 +31,12 @@ export class ReadMessageHandler implements RouteHandler<ReadMessageRequestDto, P
             throw new IllegalStateError("Missing mandatory query parameter timestamp");
         }
 
+        // TODO look up message group ID by public ID
+        const messageGroupId = 0;       // dto.messageGroupId
+
         const paginationParams = this.getPaginationParams(dto);
 
-        const messages = await this.messageService.readMessages(profileId as number, paginationParams);
+        const messages = await this.messageService.readMessages(messageGroupId as number, paginationParams);
 
         const messageDtos: MessageDto[] = messages.map(item => {
             return {

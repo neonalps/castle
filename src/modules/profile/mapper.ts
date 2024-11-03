@@ -41,12 +41,26 @@ export class ProfileMapper {
         return ProfileDao.fromDaoInterface(result[0]);
     }
 
+    public async getByHashedLogin(hashedLogin: string): Promise<ProfileDao | null> {
+        const result = await this.sql<ProfileDaoInterface[]>`
+            ${ this.commonProfileSelect() }
+            where
+                hashed_login = ${ hashedLogin }
+        `;
+
+        if (!result || result.length === 0) {
+            return null;
+        }
+
+        return ProfileDao.fromDaoInterface(result[0]);
+    }
+
     public async create(dto: CreateProfileDto): Promise<number> {
         const result = await this.sql`
             insert into profile
-                (public_id, app_id, hashed_email, encrypted_local_key, created_at)
+                (public_id, app_id, hashed_login, created_at)
             values
-                (${ dto.publicId }, ${ dto.appId }, ${ dto.hashedEmail }, ${ dto.encryptedLocalKey }, now())
+                (${ dto.publicId }, ${ dto.appId }, ${ dto.hashedLogin }, now())
             returning id
         `;
     
@@ -58,11 +72,10 @@ export class ProfileMapper {
             select
                 id,
                 public_id,
-                hashed_email,
-                encrypted_local_key,
+                hashed_login,
                 created_at
             from
-                project`;
+                profile`;
     }
 
 }
