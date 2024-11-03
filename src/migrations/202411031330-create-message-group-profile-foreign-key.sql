@@ -1,0 +1,1 @@
+alter table message_group add constraint fk_message_group_profile foreign key (profile_id) references profile(id);

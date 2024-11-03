@@ -28,6 +28,21 @@ export class AppMapper {
         return AppDao.fromDaoInterface(result[0]);
     }
 
+    public async getByPublicId(publicId: string): Promise<AppDao | null> {
+        const result = await this.sql<AppDaoInterface[]>`
+            ${ this.commonAppSelect() }
+            where
+                public_id = ${ publicId }
+        `;
+
+        if (!result || result.length === 0) {
+            return null;
+        }
+
+
+        return AppDao.fromDaoInterface(result[0]);
+    }
+
     public async create(dto: CreateAppDto): Promise<number> {
         const result = await this.sql`
             insert into app

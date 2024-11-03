@@ -2,7 +2,7 @@ export interface ProfileDaoInterface {
     id: number;
     publicId: string;
     appId: number;
-    hashedEmail: string;
+    hashedLogin: string;
     encryptedLocalKey: string;
     createdAt: Date;
 }

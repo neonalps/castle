@@ -3,7 +3,7 @@ import { AppDao } from "@src/models/internal/dao/app";
 import { CreateAppDto } from "@src/models/internal/dto/create-app";
 import { AppMapper } from "@src/modules/app/mapper";
 import { requireNonNull } from "@src/util/common";
-import { validateNotNull } from "@src/util/validation";
+import { validateNotBlank, validateNotNull } from "@src/util/validation";
 
 export class AppService {
 
@@ -26,10 +26,16 @@ export class AppService {
         return app;
     }
 
-    public async getById(id: number): Promise<AppDao | null> {
+    public getById(id: number): Promise<AppDao | null> {
         validateNotNull(id, "id");
 
         return this.mapper.getById(id);
+    }
+
+    public getByPublicId(publicId: string): Promise<AppDao | null> {
+        validateNotBlank(publicId, "publicId");
+
+        return this.mapper.getByPublicId(publicId);
     }
 
 }
