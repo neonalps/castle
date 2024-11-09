@@ -7,13 +7,15 @@ import { PostMessageRouteProvider } from "@src/api/v1/message/post/route-provide
 import { PaginationService } from "@src/modules/pagination/service";
 import { ReadMessageHandler } from "./read/handler";
 import { ReadMessageRouteProvider } from "./read/route-provider";
+import { MessageGroupService } from "@src/modules/message-group/service";
 
 export function getMessageRouteProviders(): RouteProvider<any, any>[] {
+    const messageGroupService = dependencyManager.get<MessageGroupService>(Dependencies.MessageGroupService);
     const messageService = dependencyManager.get<MessageService>(Dependencies.MessageService);
     const paginationService = dependencyManager.get<PaginationService>(Dependencies.PaginationService);
 
-    const postMessageHandler = new PostMessageHandler(messageService);
-    const readMessageHandler = new ReadMessageHandler(messageService, paginationService);
+    const postMessageHandler = new PostMessageHandler(messageGroupService, messageService);
+    const readMessageHandler = new ReadMessageHandler(messageGroupService, messageService, paginationService);
 
     return [
         new PostMessageRouteProvider(postMessageHandler),

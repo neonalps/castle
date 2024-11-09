@@ -31,7 +31,8 @@ export class PostMessageRouteProvider implements RouteProvider<PostMessageReques
                         }
                     },
                     merkle: { type: 'string' },
-                }
+                    messageGroupId: { type: 'string' },
+                },
             },
         };
 

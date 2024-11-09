@@ -1,5 +1,5 @@
 import { requireNonNull } from "@src/util/common";
-import { ProfileMapper } from "./mapper";
+import { ProfileMapper } from "@src/modules/profile/mapper";
 import { CreateProfileDto } from "@src/models/internal/dto/create-profile";
 import { ProfileDao } from "@src/models/internal/dao/profile";
 import { validateNotBlank, validateNotNull } from "@src/util/validation";
@@ -46,6 +46,9 @@ export class ProfileService {
     }
 
     public async getOrCreate(app: AppDao, email: string): Promise<ProfileDao> {
+        validateNotNull(app, "app");
+        validateNotBlank(email, "email");
+
         const login = [email, app.publicId].join(":");
         const loginHash = this.cryptoService.hash(login);
 
@@ -61,6 +64,23 @@ export class ProfileService {
             .build();
 
         return this.create(createDto);
+    }
+
+    public async storeEncryptedLocalKey(id: number, encryptedLocalKey: string): Promise<void> {
+        validateNotNull(id, "id");
+        validateNotBlank(encryptedLocalKey, "encryptedLocalKey");
+
+        const profile = await this.getById(id);
+        if (profile === null) {
+            throw new IllegalStateError("Could not load profile");
+        }
+
+        // it is only possible to set the encrypted local key once
+        if (profile.encryptedLocalKey !== null) {
+            throw new IllegalStateError("Profile already has an encrypted local key");
+        }
+        
+        await this.mapper.storeEncryptedLocalKey(id, encryptedLocalKey);
     }
 
 }

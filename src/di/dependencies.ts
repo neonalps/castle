@@ -11,6 +11,8 @@ export enum Dependencies {
     PaginationService,
     ProfileAuthTokenMapper,
     ProfileAuthTokenService,
+    ProfilePermissionMapper,
+    ProfilePermissionService,
     ProfileMapper,
     ProfileService,
     RandomSource,

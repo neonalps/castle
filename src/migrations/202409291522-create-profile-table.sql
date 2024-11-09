@@ -3,6 +3,7 @@ CREATE TABLE profile (
     public_id TEXT NOT NULL,
     app_id INTEGER NOT NULL,
     hashed_login TEXT NOT NULL,
+    encrypted_local_key TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     UNIQUE (public_id),
     UNIQUE (app_id, hashed_login),

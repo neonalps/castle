@@ -12,6 +12,20 @@ export class MessageGroupMapper {
         this.sql = requireNonNull(sql);
     }
 
+    public async getById(id: number): Promise<MessageGroupDao | null> {
+        const result = await this.sql<MessageGroupDaoInterface[]>`
+                ${ this.commonMessageGroupSelect() }
+                where
+                    id = ${ id }
+            `;
+    
+            if (!result || result.length === 0) {
+                return null;
+            }
+    
+            return MessageGroupDao.fromDaoInterface(result[0]);
+    }
+
     public async getByProfileId(profileId: number): Promise<MessageGroupDao | null> {
         const result = await this.sql<MessageGroupDaoInterface[]>`
                 ${ this.commonMessageGroupSelect() }
@@ -26,10 +40,25 @@ export class MessageGroupMapper {
             return MessageGroupDao.fromDaoInterface(result[0]);
     }
 
+    public async getByPublicId(publicId: string): Promise<MessageGroupDao | null> {
+        const result = await this.sql<MessageGroupDaoInterface[]>`
+                ${ this.commonMessageGroupSelect() }
+                where
+                    public_id = ${ publicId }
+            `;
+    
+            if (!result || result.length === 0) {
+                return null;
+            }
+    
+            return MessageGroupDao.fromDaoInterface(result[0]);
+    }
+
     private commonMessageGroupSelect(): PendingQuery<Row[]> {
         return this.sql`
             select
                 id,
+                public_id,
                 profile_id
             from
                 message_group`;

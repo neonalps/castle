@@ -20,4 +20,16 @@ export class TimeSource {
         return new Date(from.getTime() + milliseconds);
     }
 
+    public getCurrentUnixTimestamp(): number {
+        return Math.floor(Date.now() / 1000);
+    }
+
+    public getUnixTimestampFromDate(date: Date): number {
+        return Math.floor(date.getTime() / 1000);
+    }
+
+    public getDateFromUnixTimestamp(unixTimestamp: number): Date {
+        return new Date(unixTimestamp * 1000);
+    }
+
 }

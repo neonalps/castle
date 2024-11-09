@@ -24,7 +24,6 @@ export class AppMapper {
             return null;
         }
 
-
         return AppDao.fromDaoInterface(result[0]);
     }
 
@@ -62,6 +61,7 @@ export class AppMapper {
                 public_id,
                 name,
                 base_url,
+                message_group_id,
                 enabled,
                 created_at
             from
