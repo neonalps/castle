@@ -12,13 +12,15 @@ import { MessageGroupService } from "@src/modules/message-group/service";
 import { MessageGroupMapper } from "@src/modules/message-group/mapper";
 import { UuidSource } from "@src/util/uuid";
 import { TimeSource } from "@src/util/date";
-import { CryptoConfig, CryptoService } from "@src/modules/crypto/service";
+import { CryptoService } from "@src/modules/crypto/service";
 import { ProfileAuthTokenMapper } from "@src/modules/profile-auth-token/mapper";
 import { ProfileAuthTokenConfig, ProfileAuthTokenService } from "@src/modules/profile-auth-token/service";
 import { AuthService } from "@src/modules/auth/service";
 import { EmailService } from "@src/modules/email/service";
-import { getCryptoKeySymmetric } from "@src/config";
+import { getCryptoConfig, getTokenConfig } from "@src/config";
 import { RandomSource } from "@src/util/random";
+import { ProfilePermissionMapper } from "@src/modules/profile-permission/mapper";
+import { ProfilePermissionService } from "@src/modules/profile-permission/service";
 
 export class DependencyHelper {
 
@@ -32,15 +34,7 @@ export class DependencyHelper {
 
         const sqlInstance = sql;
 
-        const cryptoConfig: CryptoConfig = {
-            algorithm: {
-                hash: 'sha256',
-            },
-            joinChar: ':',
-            symmetricKey: getCryptoKeySymmetric(),
-        };
-
-        const cryptoService = new CryptoService(cryptoConfig);
+        const cryptoService = new CryptoService(getCryptoConfig());
         const emailService = new EmailService();
         const randomSource = new RandomSource();
         const timeSource = new TimeSource();
@@ -48,9 +42,6 @@ export class DependencyHelper {
 
         const appMapper = new AppMapper(sqlInstance);
         const appService = new AppService(appMapper);
-
-        const messageGroupMapper = new MessageGroupMapper(sql);
-        const messageGroupService = new MessageGroupService(messageGroupMapper);
 
         const messageMapper = new MessageMapper(sqlInstance);
         const messageService = new MessageService(messageMapper);
@@ -66,10 +57,16 @@ export class DependencyHelper {
 
         const profileAuthTokenService = new ProfileAuthTokenService(profileAuthTokenConfig, profileAuthTokenMapper, randomSource, timeSource, uuidSource);
 
+        const profilePermissionMapper = new ProfilePermissionMapper(sqlInstance);
+        const profilePermissionService = new ProfilePermissionService(profilePermissionMapper);
+
         const profileMapper = new ProfileMapper(sqlInstance);
         const profileService = new ProfileService(cryptoService, profileMapper, uuidSource);
 
-        const authService = new AuthService(appService, emailService, profileService, profileAuthTokenService);
+        const messageGroupMapper = new MessageGroupMapper(sql);
+        const messageGroupService = new MessageGroupService(appService, messageGroupMapper, profilePermissionService);
+
+        const authService = new AuthService(appService, emailService, profileService, profileAuthTokenService, timeSource, getTokenConfig());
 
         const dependencies: Map<Dependencies, any> = new Map();
 
@@ -85,6 +82,8 @@ export class DependencyHelper {
         dependencies.set(Dependencies.PaginationService, paginationService);
         dependencies.set(Dependencies.ProfileAuthTokenMapper, profileAuthTokenMapper);
         dependencies.set(Dependencies.ProfileAuthTokenService, profileAuthTokenService);
+        dependencies.set(Dependencies.ProfilePermissionMapper, profilePermissionMapper);
+        dependencies.set(Dependencies.ProfilePermissionService, profilePermissionService);
         dependencies.set(Dependencies.ProfileMapper, profileMapper);
         dependencies.set(Dependencies.ProfileService, profileService);
         dependencies.set(Dependencies.RandomSource, randomSource);

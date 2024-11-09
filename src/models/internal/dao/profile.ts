@@ -5,7 +5,7 @@ export class ProfileDao {
     private _publicId!: string;
     private _appId!: number;
     private _hashedLogin!: string;
-    private _encryptedLocalKey!: string;
+    private _encryptedLocalKey!: string | null;
     private _createdAt!: Date;
  
     constructor(builder: ProfileDaoBuilder) {
@@ -33,7 +33,7 @@ export class ProfileDao {
        return this._hashedLogin;
     }
  
-    public get encryptedLocalKey(): string {
+    public get encryptedLocalKey(): string | null {
        return this._encryptedLocalKey;
     }
  
@@ -62,7 +62,7 @@ export class ProfileDao {
     private _publicId!: string;
     private _appId!: number;
     private _hashedLogin!: string;
-    private _encryptedLocalKey!: string;
+    private _encryptedLocalKey!: string | null;
     private _createdAt!: Date;
  
     public withId(id: number): ProfileDaoBuilder {
@@ -85,7 +85,7 @@ export class ProfileDao {
        return this;
     }
  
-    public withEncryptedLocalKey(encryptedLocalKey: string): ProfileDaoBuilder {
+    public withEncryptedLocalKey(encryptedLocalKey: string | null): ProfileDaoBuilder {
        this._encryptedLocalKey = encryptedLocalKey;
        return this;
     }
@@ -111,7 +111,7 @@ export class ProfileDao {
        return this._hashedLogin;
     }
  
-    public get encryptedLocalKey(): string {
+    public get encryptedLocalKey(): string | null {
        return this._encryptedLocalKey;
     }
  

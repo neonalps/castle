@@ -67,12 +67,20 @@ export class ProfileMapper {
         return result[0].id;
     }
 
+    public async storeEncryptedLocalKey(id: number, encryptedLocalKey: string): Promise<void> {
+        const result = await this.sql`
+            update profile set encrypted_local_key = ${encryptedLocalKey} where id = ${id}
+        `;
+    }
+
     private commonProfileSelect(): PendingQuery<Row[]> {
         return this.sql`
             select
                 id,
                 public_id,
+                app_id,
                 hashed_login,
+                encrypted_local_key,
                 created_at
             from
                 profile`;

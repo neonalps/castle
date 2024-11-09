@@ -67,6 +67,27 @@ export class ProfileAuthTokenService {
         return createdAuthToken;
     }
 
+    public async redeemAuthTokenForProfileId(publicAuthTokenId: string, authTokenValue: string): Promise<number> {
+        validateNotBlank(publicAuthTokenId, "publicAuthTokenId");
+        validateNotBlank(authTokenValue, "authTokenValue");
+
+        const authToken = await this.getByPublicId(publicAuthTokenId);
+        if (authToken === null) {
+            throw new IllegalStateError("No auth token with this ID was found");
+        }
+
+        if (this.timeSource.getNow() > authToken.authTokenExpiresAt) {
+            throw new IllegalStateError("Auth token already expired");
+        }
+
+        if (authToken.authToken !== authTokenValue) {
+            await this.delete(authToken.id);
+            throw new IllegalStateError("Incorrect auth token value");
+        }
+
+        return authToken.profileId;
+    }
+
     public delete(id: number): Promise<void> {
         validateNotNull(id, "id");
 

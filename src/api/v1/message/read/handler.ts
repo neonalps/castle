@@ -1,8 +1,11 @@
 import { AuthenticationError } from "@src/api/error/authentication-error";
+import { AuthorizationError } from "@src/api/error/authorization-error";
 import { IllegalStateError } from "@src/api/error/illegal-state-error";
 import { MessageDto } from "@src/models/external/dto/message";
 import { PaginatedResponseDto } from "@src/models/external/dto/paginated-response";
 import { ReadMessageRequestDto } from "@src/models/external/dto/read-message-request";
+import { ProfileDao } from "@src/models/internal/dao/profile";
+import { MessageGroupService } from "@src/modules/message-group/service";
 import { MessageService, ReadMessagePaginationParams } from "@src/modules/message/service";
 import { PaginationService } from "@src/modules/pagination/service";
 import { AuthenticationContext, RouteHandler } from "@src/router/types";
@@ -10,15 +13,22 @@ import { isDefined, isNotDefined, requireNonNull } from "@src/util/common";
 
 export class ReadMessageHandler implements RouteHandler<ReadMessageRequestDto, PaginatedResponseDto<MessageDto>> {
 
+    private readonly messageGroupService: MessageGroupService;
     private readonly messageService: MessageService;
     private readonly paginationService: PaginationService;
 
-    constructor(messageService: MessageService, paginationService: PaginationService) {
+    constructor(messageGroupService: MessageGroupService, messageService: MessageService, paginationService: PaginationService) {
+        this.messageGroupService = requireNonNull(messageGroupService);
         this.messageService = requireNonNull(messageService);
         this.paginationService = requireNonNull(paginationService);
     }
 
     public async handle(context: AuthenticationContext, dto: ReadMessageRequestDto): Promise<PaginatedResponseDto<MessageDto>> {
+        const profile = context.profile;
+        if (isNotDefined(profile)) {
+            throw new AuthenticationError("Profile could not be found");
+        }
+
         if (isDefined(dto.nextPageKey) && (isDefined(dto.limit) || isDefined(dto.clientId) || isDefined(dto.timestamp))) {
             throw new IllegalStateError("When nextPageKey is passed no other query parameters are allowed");
         }
@@ -31,13 +41,18 @@ export class ReadMessageHandler implements RouteHandler<ReadMessageRequestDto, P
             throw new IllegalStateError("Missing mandatory query parameter timestamp");
         }
 
-        // TODO look up message group ID by public ID
-        const messageGroupId = 0;       // dto.messageGroupId
+        const messageGroup = await this.messageGroupService.getByPublicId(dto.messageGroupId);
+        if (messageGroup === null) {
+            throw new IllegalStateError("Message group could not be found");
+        }
+
+        const canReadFromMessageGroup = await this.messageGroupService.canProfileReadFromMessageGroup(profile as ProfileDao, messageGroup);
+        if (!canReadFromMessageGroup) {
+            throw new AuthorizationError("Profile is not authorized to read from this message group");
+        }
 
         const paginationParams = this.getPaginationParams(dto);
-
-        const messages = await this.messageService.readMessages(messageGroupId as number, paginationParams);
-
+        const messages = await this.messageService.readMessages(messageGroup.id, paginationParams);
         const messageDtos: MessageDto[] = messages.map(item => {
             return {
                 timestamp: item.timestamp,

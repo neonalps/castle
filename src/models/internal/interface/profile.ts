@@ -3,6 +3,6 @@ export interface ProfileDaoInterface {
     publicId: string;
     appId: number;
     hashedLogin: string;
-    encryptedLocalKey: string;
+    encryptedLocalKey: string | null;
     createdAt: Date;
 }
