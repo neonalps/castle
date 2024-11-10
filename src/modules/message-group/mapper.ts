@@ -1,5 +1,6 @@
 import { Sql } from "@src/db/db";
 import { MessageGroupDao } from "@src/models/internal/dao/message-group";
+import { CreateMessageGroupDto } from "@src/models/internal/dto/create-message-group";
 import { MessageGroupDaoInterface } from "@src/models/internal/interface/message-group";
 import { requireNonNull } from "@src/util/common";
 import { PendingQuery, Row } from "postgres";
@@ -12,46 +13,58 @@ export class MessageGroupMapper {
         this.sql = requireNonNull(sql);
     }
 
+    public async create(dto: CreateMessageGroupDto): Promise<number> {
+        const result = await this.sql`
+            insert into message_group
+                (public_id, profile_id)
+            values
+                (${ dto.publicId }, ${ dto.profileId })
+            returning id
+        `;
+    
+        return result[0].id;
+    }
+
     public async getById(id: number): Promise<MessageGroupDao | null> {
         const result = await this.sql<MessageGroupDaoInterface[]>`
-                ${ this.commonMessageGroupSelect() }
-                where
-                    id = ${ id }
-            `;
-    
-            if (!result || result.length === 0) {
-                return null;
-            }
-    
-            return MessageGroupDao.fromDaoInterface(result[0]);
+            ${ this.commonMessageGroupSelect() }
+            where
+                id = ${ id }
+        `;
+
+        if (!result || result.length === 0) {
+            return null;
+        }
+
+        return MessageGroupDao.fromDaoInterface(result[0]);
     }
 
     public async getByProfileId(profileId: number): Promise<MessageGroupDao | null> {
         const result = await this.sql<MessageGroupDaoInterface[]>`
-                ${ this.commonMessageGroupSelect() }
-                where
-                    profile_id = ${ profileId }
-            `;
-    
-            if (!result || result.length === 0) {
-                return null;
-            }
-    
-            return MessageGroupDao.fromDaoInterface(result[0]);
+            ${ this.commonMessageGroupSelect() }
+            where
+                profile_id = ${ profileId }
+        `;
+
+        if (!result || result.length === 0) {
+            return null;
+        }
+
+        return MessageGroupDao.fromDaoInterface(result[0]);
     }
 
     public async getByPublicId(publicId: string): Promise<MessageGroupDao | null> {
         const result = await this.sql<MessageGroupDaoInterface[]>`
-                ${ this.commonMessageGroupSelect() }
-                where
-                    public_id = ${ publicId }
-            `;
-    
-            if (!result || result.length === 0) {
-                return null;
-            }
-    
-            return MessageGroupDao.fromDaoInterface(result[0]);
+            ${ this.commonMessageGroupSelect() }
+            where
+                public_id = ${ publicId }
+        `;
+
+        if (!result || result.length === 0) {
+            return null;
+        }
+
+        return MessageGroupDao.fromDaoInterface(result[0]);
     }
 
     private commonMessageGroupSelect(): PendingQuery<Row[]> {

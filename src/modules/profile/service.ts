@@ -7,16 +7,25 @@ import { IllegalStateError } from "@src/api/error/illegal-state-error";
 import { AppDao } from "@src/models/internal/dao/app";
 import { CryptoService } from "@src/modules/crypto/service";
 import { UuidSource } from "@src/util/uuid";
+import { MessageGroupService } from "@src/modules/message-group/service";
+import { CreateMessageGroupDto } from "@src/models/internal/dto/create-message-group";
 
 export class ProfileService {
 
     private readonly cryptoService: CryptoService;
     private readonly mapper: ProfileMapper;
+    private readonly messageGroupService: MessageGroupService;
     private readonly uuidSource: UuidSource;
 
-    constructor(cryptoService: CryptoService, mapper: ProfileMapper, uuidSource: UuidSource) {
+    constructor(
+        cryptoService: CryptoService, 
+        mapper: ProfileMapper,
+        messageGroupService: MessageGroupService,
+        uuidSource: UuidSource,
+    ) {
         this.cryptoService = requireNonNull(cryptoService);
         this.mapper = requireNonNull(mapper);
+        this.messageGroupService = requireNonNull(messageGroupService);
         this.uuidSource = requireNonNull(uuidSource);
     }
 
@@ -29,6 +38,13 @@ export class ProfileService {
         if (!profile) {
             throw new IllegalStateError("Failed to create profile");
         }
+
+        // create profile message group
+        const createMessageGroupDto = CreateMessageGroupDto.Builder
+            .withPublicId(this.uuidSource.getRandomUuid())
+            .withProfileId(profileId)
+            .build();
+        await this.messageGroupService.create(createMessageGroupDto);
 
         return profile;
     }

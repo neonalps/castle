@@ -60,11 +60,11 @@ export class DependencyHelper {
         const profilePermissionMapper = new ProfilePermissionMapper(sqlInstance);
         const profilePermissionService = new ProfilePermissionService(profilePermissionMapper);
 
-        const profileMapper = new ProfileMapper(sqlInstance);
-        const profileService = new ProfileService(cryptoService, profileMapper, uuidSource);
-
         const messageGroupMapper = new MessageGroupMapper(sql);
         const messageGroupService = new MessageGroupService(appService, messageGroupMapper, profilePermissionService);
+
+        const profileMapper = new ProfileMapper(sqlInstance);
+        const profileService = new ProfileService(cryptoService, profileMapper, messageGroupService, uuidSource);
 
         const authService = new AuthService(appService, emailService, profileService, profileAuthTokenService, timeSource, getTokenConfig());
 

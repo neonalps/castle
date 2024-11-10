@@ -1,6 +1,6 @@
 import { isNotDefined, removeNull, requireNonNull } from "@src/util/common";
 import { MessageGroupMapper } from "@src/modules/message-group/mapper";
-import { validateNotNull } from "@src/util/validation";
+import { validateNotBlank, validateNotNull } from "@src/util/validation";
 import { MessageGroupDao } from "@src/models/internal/dao/message-group";
 import { AppService } from "@src/modules/app/service";
 import { ProfilePermissionService } from "@src/modules/profile-permission/service";
@@ -8,6 +8,7 @@ import { Permission } from "@src/models/internal/enum/permission";
 import { ProfileDao } from "@src/models/internal/dao/profile";
 import { IllegalStateError } from "@src/api/error/illegal-state-error";
 import { AppDao } from "@src/models/internal/dao/app";
+import { CreateMessageGroupDto } from "@src/models/internal/dto/create-message-group";
 
 export class MessageGroupService {
 
@@ -19,6 +20,19 @@ export class MessageGroupService {
         this.appService = requireNonNull(appService);
         this.mapper = requireNonNull(mapper);
         this.profilePermissionService = requireNonNull(profilePermissionService);
+    }
+
+    public async create(dto: CreateMessageGroupDto): Promise<MessageGroupDao> {
+        validateNotNull(dto, "dto");
+        validateNotBlank(dto.publicId, "dto.publicId");
+
+        const messageGroupId = await this.mapper.create(dto);
+        const messageGroup = await this.getById(messageGroupId);
+        if (messageGroup === null) {
+            throw new IllegalStateError("Failed to create message group");
+        }
+        
+        return messageGroup;
     }
 
     public getById(id: number): Promise<MessageGroupDao | null> {
